@@ -73,9 +73,10 @@ def apply_rope(xq: torch.Tensor, freqs_cis: torch.Tensor) -> torch.Tensor:
         `torch.Tensor`:
             Tensor of the same shape as `xq` with rotary embeddings applied.
     """
-    xq_ = xq.float().reshape(*xq.shape[:-1], -1, 1, 2)
-    # Ensure freqs_cis is on the same device as queries to avoid device mismatches with offloading
-    freqs_cis = freqs_cis.to(device=xq.device, dtype=xq_.dtype)
+    xq_ = xq.reshape(*xq.shape[:-1], -1, 1, 2)
+    # Ensure freqs_cis is on the same device as queries to avoid device mismatches with offloading. float32 freqs
+    # make the products float32 through type promotion, without a float32 copy of xq.
+    freqs_cis = freqs_cis.to(device=xq.device, dtype=torch.float32)
     xq_out = freqs_cis[..., 0] * xq_[..., 0] + freqs_cis[..., 1] * xq_[..., 1]
     return xq_out.reshape(*xq.shape).type_as(xq)
 

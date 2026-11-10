@@ -83,7 +83,7 @@ def apply_gate_sum(x: Tensor, out: Tensor, gate: Tensor) -> Tensor:
 # Copied from diffusers.models.transformers.transformer_kandinsky6.apply_rotary
 def apply_rotary(x: Tensor, rope: Tensor) -> Tensor:
     """RoPE apply in fp32 (rope tables are fp32), cast back to ``x.dtype``."""
-    x_ = x.reshape(*x.shape[:-1], -1, 1, 2).float()
+    x_ = x.reshape(*x.shape[:-1], -1, 1, 2)  # float32 rope makes the product float32, without a float32 copy of x
     return (rope.float() * x_).sum(dim=-1).reshape(*x.shape).to(dtype=x.dtype)
 
 

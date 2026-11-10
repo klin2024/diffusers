@@ -126,8 +126,10 @@ class HiDreamImageEmbedND(nn.Module):
 
 
 def apply_rope(xq: torch.Tensor, xk: torch.Tensor, freqs_cis: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-    xq_ = xq.float().reshape(*xq.shape[:-1], -1, 1, 2)
-    xk_ = xk.float().reshape(*xk.shape[:-1], -1, 1, 2)
+    # float32 math through type promotion, without float32 copies of xq / xk
+    freqs_cis = freqs_cis.to(torch.promote_types(torch.float32, freqs_cis.dtype))
+    xq_ = xq.reshape(*xq.shape[:-1], -1, 1, 2)
+    xk_ = xk.reshape(*xk.shape[:-1], -1, 1, 2)
     xq_out = freqs_cis[..., 0] * xq_[..., 0] + freqs_cis[..., 1] * xq_[..., 1]
     xk_out = freqs_cis[..., 0] * xk_[..., 0] + freqs_cis[..., 1] * xk_[..., 1]
     return xq_out.reshape(*xq.shape).type_as(xq), xk_out.reshape(*xk.shape).type_as(xk)

@@ -307,7 +307,9 @@ class Kandinsky5AttnProcessor:
         key = attn.key_norm(key.float()).type_as(key)
 
         def apply_rotary(x, rope):
-            x_ = x.reshape(*x.shape[:-1], -1, 1, 2).to(torch.float32)
+            # float32 math through type promotion, without a float32 copy of x
+            rope = rope.to(torch.promote_types(torch.float32, rope.dtype))
+            x_ = x.reshape(*x.shape[:-1], -1, 1, 2)
             x_out = (rope * x_).sum(dim=-1)
             return x_out.reshape(*x.shape).to(torch.bfloat16)
 
